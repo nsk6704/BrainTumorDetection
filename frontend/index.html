@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroScan | Brain Tumour Analysis</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z">
+                </path>
+            </svg>
+            NeuroScan AI
+        </div>
+        <ul class="nav-links mt-10">
+            <li class="nav-item active" data-target="analysis">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                    </path>
+                </svg>
+                Detection
+            </li>
+            <li class="nav-item" data-target="history">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.58 4 8 4s8-1.79 8-4M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4m0 5c0 2.21-3.58 4-8 4s-8-1.79-8-4">
+                    </path>
+                </svg>
+                Model Stats
+            </li>
+            <li class="nav-item" data-target="info">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Model Info
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Analysis Section -->
+        <section id="analysis" class="section active">
+            <header class="mb-10">
+                <h1 class="text-4xl font-bold">Brain Tumour Detection</h1>
+                <p class="text-slate-400 mt-2">Upload an MRI scan image for instant classification.</p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="card">
+                    <h2>Image Upload</h2>
+                    <div id="dropZone" class="drop-zone">
+                        <p class="mb-4">Drag & Drop MRI image here or click to browse</p>
+                        <input type="file" id="fileInput" hidden accept="image/*">
+                        <button class="btn" onclick="document.getElementById('fileInput').click()">Select File</button>
+                    </div>
+                    <div id="previewArea" class="mt-6 hidden">
+                        <img id="imagePreview" class="rounded-lg w-full max-h-64 object-cover">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Analysis Result</h2>
+                    <div id="resultPlaceholder" class="text-center py-10 text-slate-500">
+                        Result will appear here after upload
+                    </div>
+                    <div id="resultArea" class="hidden">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="text-5xl" id="resIcon">🧠</div>
+                            <div>
+                                <h3 id="resTitle" class="text-2xl font-bold">--</h3>
+                                <p id="resConfidence" class="text-slate-400">Confidence: --%</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <p class="text-sm font-semibold uppercase tracking-wider text-slate-500">Classification
+                                Details</p>
+                            <div id="scoreBars" class="space-y-2">
+                                <!-- Bars will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section id="history" class="section">
+            <header class="mb-10">
+                <h1 class="text-4xl font-bold">Training Visualization</h1>
+                <p class="text-slate-400 mt-2">Insights from the model training phase.</p>
+            </header>
+            <div class="stats-grid">
+                <div class="card">
+                    <h3 class="mb-4 font-bold">Accuracy Curve</h3>
+                    <canvas id="accuracyChart"></canvas>
+                </div>
+                <div class="card">
+                    <h3 class="mb-4 font-bold">Loss Curve</h3>
+                    <canvas id="lossChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Info Section -->
+        <section id="info" class="section">
+            <header class="mb-10">
+                <h1 class="text-4xl font-bold">Model Architecture</h1>
+                <p class="text-slate-400 mt-2">CNN design and performance specifications.</p>
+            </header>
+            <div class="card">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-xl font-bold" id="modelName">CNN Detector V1</h3>
+                        <p class="text-slate-400">Achieved Accuracy: <span class="text-success font-bold">94.16%</span>
+                        </p>
+                    </div>
+                    <span class="px-3 py-1 bg-indigo-500/20 text-indigo-400 rounded-full text-xs font-bold">Production
+                        Ready</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="py-3 px-4 font-semibold">Layer Type</th>
+                                <th class="py-3 px-4 font-semibold">Output Shape</th>
+                                <th class="py-3 px-4 font-semibold">Param #</th>
+                            </tr>
+                        </thead>
+                        <tbody id="layerInfo">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Global Loader -->
+    <div id="loader">
+        <div class="spinner mb-4"></div>
+        <p>Processing Analysis...</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
