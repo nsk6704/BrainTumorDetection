@@ -59,6 +59,9 @@ async function handleFileUpload(file) {
 
     // Predict
     loader.style.display = 'flex';
+    resultArea.classList.add('hidden');
+    resultPlaceholder.classList.remove('hidden');
+
     const formData = new FormData();
     formData.append('file', file);
 
@@ -67,11 +70,17 @@ async function handleFileUpload(file) {
             method: 'POST',
             body: formData
         });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.detail || 'Analysis failed on server');
+        }
+
         const data = await response.json();
         displayResult(data);
     } catch (err) {
         console.error('Prediction error:', err);
-        alert('Error connecting to the analysis server.');
+        resultPlaceholder.innerHTML = `<div class="text-rose-500 font-bold">⚠️ ${err.message}</div>`;
     } finally {
         loader.style.display = 'none';
     }
@@ -81,8 +90,21 @@ function displayResult(data) {
     resultPlaceholder.classList.add('hidden');
     resultArea.classList.remove('hidden');
 
-    document.getElementById('resTitle').innerText = data.prediction;
-    document.getElementById('resConfidence').innerText = `Confidence: ${data.confidence}%`;
+    const resTitle = document.getElementById('resTitle');
+    const resConf = document.getElementById('resConfidence');
+    const resultCard = resultArea.closest('.card');
+
+    resTitle.innerText = data.prediction;
+    resConf.innerText = `Confidence: ${data.confidence}%`;
+
+    // Dynamic Styling
+    if (data.prediction.toLowerCase().includes('no tumour')) {
+        resultCard.style.borderColor = 'var(--success)';
+        resTitle.style.color = 'var(--success)';
+    } else {
+        resultCard.style.borderColor = 'var(--danger)';
+        resTitle.style.color = 'var(--danger)';
+    }
 
     const labels = ['Glioma', 'Meningioma', 'Normal', 'Pituitary'];
 
@@ -193,27 +215,28 @@ async function loadModelInfo() {
     try {
         const response = await fetch(`${API_BASE}/model-info`);
         const info = await response.json();
-        console.log('Model info received:', info);
 
-        const tableBody = document.getElementById('layerInfo');
-        tableBody.innerHTML = '';
+        document.getElementById('modelName').innerText = info.name;
+        document.getElementById('modelType').innerText = info.type;
+        document.getElementById('modelDesc').innerText = info.description;
+        document.getElementById('totalParams').innerText = info.params;
 
-        if (info.layers && info.layers.length > 0) {
-            info.layers.forEach(layer => {
-                const row = `
-                    <tr class="border-b border-slate-800 hover:bg-white/5 transition">
-                        <td class="py-4 px-4 font-mono text-xs text-indigo-400 font-bold">${layer.type}</td>
-                        <td class="py-4 px-4 text-slate-300 text-sm font-mono">${layer.output_shape}</td>
-                        <td class="py-4 px-4 text-slate-500 text-xs">${layer.trainable ? 'Trainable' : 'Frozen'}</td>
-                    </tr>
+        const statsContainer = document.getElementById('modelStats');
+        statsContainer.innerHTML = '';
+
+        if (info.stats && info.stats.length > 0) {
+            info.stats.forEach(stat => {
+                const cardHtml = `
+                    <div class="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
+                        <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">${stat.label}</p>
+                        <h5 class="text-xl font-black text-indigo-400">${stat.value}</h5>
+                    </div>
                 `;
-                tableBody.innerHTML += row;
+                statsContainer.innerHTML += cardHtml;
             });
-            document.getElementById('modelName').innerText = info.name + ` (${info.total_params.toLocaleString()} params)`;
-        } else {
-            tableBody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-slate-500">Model layers could not be loaded. Please check backend logs.</td></tr>';
         }
     } catch (err) {
         console.error('Error loading model info:', err);
+        document.getElementById('modelDesc').innerText = "Failed to load model architecture summary.";
     }
 }

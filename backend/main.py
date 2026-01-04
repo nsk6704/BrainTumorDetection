@@ -64,32 +64,40 @@ def get_stats():
 @app.get("/model-info")
 def get_model_info():
     if model:
-        layers = []
+        # Count layer types
+        layer_counts = {}
         for layer in model.layers:
-            # Get config to find params if needed, or just type and shape
-            try:
-                shape = str(layer.output_shape)
-            except:
-                shape = "Dynamic"
-            
-            layers.append({
-                "name": layer.name,
-                "type": type(layer).__name__,
-                "output_shape": shape,
-                "trainable": layer.trainable
-            })
+            l_type = type(layer).__name__
+            layer_counts[l_type] = layer_counts.get(l_type, 0) + 1
+        
+        # Build descriptive info
+        architecture_type = "Deep Convolutional Neural Network (CNN)"
+        description = (
+            f"The model is a {architecture_type} meticulously designed for high-resolution MRI analysis. "
+            f"It features {layer_counts.get('Conv2D', 0)} Convolutional layers that extract intricate spatial features from the scans, "
+            f"supported by {layer_counts.get('MaxPooling2D', 0)} Max Pooling layers for downsampling and translational invariance. "
+            f"To prevent overfitting, {layer_counts.get('Dropout', 0)} Dropout layers are strategically placed throughout the network. "
+            f"The final classification is handled by {layer_counts.get('Dense', 0)} Fully Connected layers, culminating in a 4-way Softmax output."
+        )
+
         return {
-            "name": "CNN Brain Tumour Detector",
-            "accuracy": "94.16%",
-            "layers": layers,
-            "total_params": model.count_params() if hasattr(model, 'count_params') else "Unknown"
+            "name": "NeuroScan CNN V1",
+            "type": architecture_type,
+            "description": description,
+            "params": f"{model.count_params():,}",
+            "stats": [
+                {"label": "Convolutional Stages", "value": layer_counts.get('Conv2D', 0)},
+                {"label": "Pooling Operations", "value": layer_counts.get('MaxPooling2D', 0)},
+                {"label": "Regularization Layers", "value": layer_counts.get('Dropout', 0)},
+                {"label": "Input Resolution", "value": "150x150x3"}
+            ]
         }
     else:
         return {
             "name": "Model Not Loaded",
-            "accuracy": "0%",
-            "layers": [],
-            "error": "The model file could not be found or loaded on the server."
+            "description": "The AI engine is currently offline or the model file could not be loaded.",
+            "params": "0",
+            "stats": []
         }
 
 @app.post("/predict")

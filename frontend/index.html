@@ -78,20 +78,20 @@
                         Result will appear here after upload
                     </div>
                     <div id="resultArea" class="hidden">
-                        <div class="mb-6">
-                            <h3 id="resTitle" class="text-2xl font-bold">--</h3>
-                            <p id="resConfidence" class="text-slate-400">Confidence: --%</p>
+                        <div class="p-6 mb-6 rounded-xl bg-white/5 border border-white/10">
+                            <h3 id="resTitle" class="text-3xl font-black mb-1">--</h3>
+                            <p id="resConfidence" class="text-slate-400 font-medium tracking-wide">Confidence: --%</p>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-3">
-                                <p class="text-sm font-semibold uppercase tracking-wider text-slate-500">Classification
-                                    Details</p>
-                                <div id="scoreBars" class="space-y-2">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-4">
+                                <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Probability
+                                    Map</p>
+                                <div id="scoreBars" class="space-y-3">
                                     <!-- Bars injected here -->
                                 </div>
                             </div>
-                            <div class="h-48">
+                            <div class="h-56 flex items-center justify-center">
                                 <canvas id="radarChart"></canvas>
                             </div>
                         </div>
@@ -146,26 +146,29 @@
                 <p class="text-slate-400 mt-2">CNN design and performance specifications.</p>
             </header>
             <div class="card">
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h3 class="text-xl font-bold" id="modelName">CNN Detector V1</h3>
-                        <p class="text-slate-400">Achieved Accuracy: <span class="text-success font-bold">94.16%</span>
+                <div class="card !p-8">
+                    <div class="flex justify-between items-start mb-8">
+                        <div>
+                            <h3 class="text-2xl font-black mb-1" id="modelName">NeuroScan CNN V1</h3>
+                            <p class="text-slate-400 font-medium">Architecture: <span class="text-indigo-400"
+                                    id="modelType">--</span></p>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-invert max-w-none mb-10">
+                        <p class="text-lg text-slate-300 leading-relaxed italic" id="modelDesc">
+                            Loading detailed architecture summary...
                         </p>
                     </div>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr class="border-b border-slate-700">
-                                <th class="py-3 px-4 font-semibold">Layer Type</th>
-                                <th class="py-3 px-4 font-semibold">Output Shape</th>
-                                <th class="py-3 px-4 font-semibold">Param #</th>
-                            </tr>
-                        </thead>
-                        <tbody id="layerInfo">
-                            <!-- Injected by JS -->
-                        </tbody>
-                    </table>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6" id="modelStats">
+                        <!-- Stat cards injected here -->
+                    </div>
+
+                    <div class="mt-10 pt-8 border-t border-white/5 flex justify-between items-center text-sm">
+                        <span class="text-slate-500 uppercase tracking-widest font-bold">Total Parameters</span>
+                        <span class="text-indigo-400 font-mono text-xl font-black" id="totalParams">--</span>
+                    </div>
                 </div>
             </div>
         </section>
