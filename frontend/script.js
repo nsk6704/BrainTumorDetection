@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8000'; // Change to your Render URL after deployment
+const API_BASE = 'https://braintumordetection-4006.onrender.com';
 
 // Navigation
 const navItems = document.querySelectorAll('.nav-item');
@@ -7,13 +7,13 @@ const sections = document.querySelectorAll('.section');
 navItems.forEach(item => {
     item.addEventListener('click', () => {
         const target = item.getAttribute('data-target');
-        
+
         navItems.forEach(i => i.classList.remove('active'));
         sections.forEach(s => s.classList.remove('active'));
-        
+
         item.classList.add('active');
         document.getElementById(target).classList.add('active');
-        
+
         if (target === 'history') loadStats();
         if (target === 'info') loadModelInfo();
     });
@@ -80,14 +80,14 @@ async function handleFileUpload(file) {
 function displayResult(data) {
     resultPlaceholder.classList.add('hidden');
     resultArea.classList.remove('hidden');
-    
+
     document.getElementById('resTitle').innerText = data.prediction;
     document.getElementById('resConfidence').innerText = `Confidence: ${data.confidence}%`;
     document.getElementById('resIcon').innerText = data.index === 2 ? '✅' : '⚠️';
-    
+
     const barsContainer = document.getElementById('scoreBars');
     barsContainer.innerHTML = '';
-    
+
     const labels = ['Glioma', 'Meningioma', 'Normal', 'Pituitary'];
     data.all_scores.forEach((score, i) => {
         const percentage = (score * 100).toFixed(1);
@@ -110,13 +110,13 @@ function displayResult(data) {
 let chartsCreated = false;
 async function loadStats() {
     if (chartsCreated) return;
-    
+
     try {
         const response = await fetch(`${API_BASE}/stats`);
         const stats = await response.json();
-        
-        const labels = Array.from({length: stats.accuracy.length}, (_, i) => i + 1);
-        
+
+        const labels = Array.from({ length: stats.accuracy.length }, (_, i) => i + 1);
+
         new Chart(document.getElementById('accuracyChart'), {
             type: 'line',
             data: {
@@ -140,7 +140,7 @@ async function loadStats() {
             },
             options: { responsive: true, plugins: { legend: { labels: { color: '#94a3b8' } } } }
         });
-        
+
         chartsCreated = true;
     } catch (err) {
         console.error('Error loading stats:', err);
@@ -152,10 +152,10 @@ async function loadModelInfo() {
     try {
         const response = await fetch(`${API_BASE}/model-info`);
         const info = await response.json();
-        
+
         const tableBody = document.getElementById('layerInfo');
         tableBody.innerHTML = '';
-        
+
         info.layers.forEach(layer => {
             const row = `
                 <tr class="border-b border-slate-800 hover:bg-white/5 transition">
