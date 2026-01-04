@@ -27,7 +27,26 @@ A professional medical imaging analysis platform using a Convolutional Neural Ne
 2. **Frontend**:
    Open `frontend/index.html` in your browser (use Live Server for best results).
 
-## Deployment
+## Deployment (No Card Required)
 
-- **Backend (Render)**: Connect your repository and use the provided `render.yaml`.
-- **Frontend (Vercel)**: Connect your repository and it will auto-detect the `vercel.json` configuration.
+### 1. Backend (Render)
+To avoid being asked for a credit card, use the **Manual Setup** instead of the Blueprint:
+1. Log in to [Render](https://dashboard.render.com).
+2. Click **New +** -> **Web Service**.
+3. Connect your GitHub repository.
+4. Set the following:
+   - **Name**: `brain-tumor-api`
+   - **Runtime**: `Python 3`
+   - **Build Command**: `pip install -r backend/requirements.txt`
+   - **Start Command**: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+5. Select the **Free** instance type.
+6. Click **Create Web Service**.
+
+### 2. Frontend (Vercel)
+Vercel is completely free for personal projects and does not require a card:
+1. Log in to [Vercel](https://vercel.com).
+2. Click **Add New** -> **Project**.
+3. Import your repository.
+4. It will automatically use the `vercel.json` and deploy.
+5. **Update URL**: Copy your Render API URL and paste it into `frontend/script.js` (replace `http://localhost:8000`).
+
