@@ -6,7 +6,7 @@ A professional medical imaging analysis platform using a Convolutional Neural Ne
 
 - **`backend/`**: FastAPI server handling predictions and model statistics.
 - **`frontend/`**: Modern dashboard built with Vanilla JS, Tailwind CSS, and Chart.js.
-- **`models/`**: Pre-trained CNN model (`braintumourN.h5`).
+- **`models/`**: CNN model (`braintumourN.h5`).
 - **`data/`**: Training history logs for visualisations.
 
 ## Features
