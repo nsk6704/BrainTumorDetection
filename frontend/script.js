@@ -70,7 +70,7 @@ async function handleFileUpload(file) {
         const data = await response.json();
         displayResult(data);
     } catch (err) {
-        console.error(err);
+        console.error('Prediction error:', err);
         alert('Error connecting to the analysis server.');
     } finally {
         loader.style.display = 'none';
@@ -83,12 +83,12 @@ function displayResult(data) {
 
     document.getElementById('resTitle').innerText = data.prediction;
     document.getElementById('resConfidence').innerText = `Confidence: ${data.confidence}%`;
-    document.getElementById('resIcon').innerText = data.index === 2 ? '✅' : '⚠️';
-
-    const barsContainer = document.getElementById('scoreBars');
-    barsContainer.innerHTML = '';
 
     const labels = ['Glioma', 'Meningioma', 'Normal', 'Pituitary'];
+
+    // Update Bars
+    const barsContainer = document.getElementById('scoreBars');
+    barsContainer.innerHTML = '';
     data.all_scores.forEach((score, i) => {
         const percentage = (score * 100).toFixed(1);
         const barHtml = `
@@ -104,6 +104,39 @@ function displayResult(data) {
         `;
         barsContainer.innerHTML += barHtml;
     });
+
+    // Update Radar Chart
+    if (predictionRadarChart) predictionRadarChart.destroy();
+    const ctx = document.getElementById('radarChart').getContext('2d');
+    predictionRadarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Probability',
+                data: data.all_scores,
+                fill: true,
+                backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                borderColor: 'rgb(79, 70, 229)',
+                pointBackgroundColor: 'rgb(79, 70, 229)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(79, 70, 229)'
+            }]
+        },
+        options: {
+            elements: { line: { borderWidth: 3 } },
+            plugins: { legend: { display: false } },
+            scales: {
+                r: {
+                    angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    pointLabels: { color: '#94a3b8' },
+                    ticks: { display: false }
+                }
+            }
+        }
+    });
 }
 
 // Training Stats
@@ -113,17 +146,25 @@ async function loadStats() {
 
     try {
         const response = await fetch(`${API_BASE}/stats`);
-        const stats = await response.json();
+        const data = await response.json();
+        const history = data.history;
+        const summary = data.summary;
 
-        const labels = Array.from({ length: stats.accuracy.length }, (_, i) => i + 1);
+        // Update Summary Bar
+        document.getElementById('statMaxAcc').innerText = summary.max_accuracy + '%';
+        document.getElementById('statValAcc').innerText = summary.max_val_accuracy + '%';
+        document.getElementById('statLoss').innerText = summary.final_loss;
+        document.getElementById('statEpochs').innerText = summary.epochs;
+
+        const labels = Array.from({ length: history.accuracy.length }, (_, i) => i + 1);
 
         new Chart(document.getElementById('accuracyChart'), {
             type: 'line',
             data: {
                 labels,
                 datasets: [
-                    { label: 'Training', data: stats.accuracy, borderColor: '#4f46e5', tension: 0.3 },
-                    { label: 'Validation', data: stats.val_accuracy, borderColor: '#10b981', tension: 0.3 }
+                    { label: 'Training', data: history.accuracy, borderColor: '#4f46e5', tension: 0.3 },
+                    { label: 'Validation', data: history.val_accuracy, borderColor: '#10b981', tension: 0.3 }
                 ]
             },
             options: { responsive: true, plugins: { legend: { labels: { color: '#94a3b8' } } } }
@@ -134,8 +175,8 @@ async function loadStats() {
             data: {
                 labels,
                 datasets: [
-                    { label: 'Training', data: stats.loss, borderColor: '#ef4444', tension: 0.3 },
-                    { label: 'Validation', data: stats.val_loss, borderColor: '#f59e0b', tension: 0.3 }
+                    { label: 'Training', data: history.loss, borderColor: '#ef4444', tension: 0.3 },
+                    { label: 'Validation', data: history.val_loss, borderColor: '#f59e0b', tension: 0.3 }
                 ]
             },
             options: { responsive: true, plugins: { legend: { labels: { color: '#94a3b8' } } } }
@@ -152,20 +193,26 @@ async function loadModelInfo() {
     try {
         const response = await fetch(`${API_BASE}/model-info`);
         const info = await response.json();
+        console.log('Model info received:', info);
 
         const tableBody = document.getElementById('layerInfo');
         tableBody.innerHTML = '';
 
-        info.layers.forEach(layer => {
-            const row = `
-                <tr class="border-b border-slate-800 hover:bg-white/5 transition">
-                    <td class="py-4 px-4 font-mono text-xs text-indigo-400">${layer.type}</td>
-                    <td class="py-4 px-4 text-slate-300 text-sm">${layer.output_shape}</td>
-                    <td class="py-4 px-4 text-slate-500 text-xs">${Math.floor(Math.random() * 10000)}</td>
-                </tr>
-            `;
-            tableBody.innerHTML += row;
-        });
+        if (info.layers && info.layers.length > 0) {
+            info.layers.forEach(layer => {
+                const row = `
+                    <tr class="border-b border-slate-800 hover:bg-white/5 transition">
+                        <td class="py-4 px-4 font-mono text-xs text-indigo-400 font-bold">${layer.type}</td>
+                        <td class="py-4 px-4 text-slate-300 text-sm font-mono">${layer.output_shape}</td>
+                        <td class="py-4 px-4 text-slate-500 text-xs">${layer.trainable ? 'Trainable' : 'Frozen'}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+            document.getElementById('modelName').innerText = info.name + ` (${info.total_params.toLocaleString()} params)`;
+        } else {
+            tableBody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-slate-500">Model layers could not be loaded. Please check backend logs.</td></tr>';
+        }
     } catch (err) {
         console.error('Error loading model info:', err);
     }

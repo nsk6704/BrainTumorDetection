@@ -78,18 +78,21 @@
                         Result will appear here after upload
                     </div>
                     <div id="resultArea" class="hidden">
-                        <div class="flex items-center gap-4 mb-6">
-                            <div class="text-5xl" id="resIcon">🧠</div>
-                            <div>
-                                <h3 id="resTitle" class="text-2xl font-bold">--</h3>
-                                <p id="resConfidence" class="text-slate-400">Confidence: --%</p>
-                            </div>
+                        <div class="mb-6">
+                            <h3 id="resTitle" class="text-2xl font-bold">--</h3>
+                            <p id="resConfidence" class="text-slate-400">Confidence: --%</p>
                         </div>
-                        <div class="space-y-3">
-                            <p class="text-sm font-semibold uppercase tracking-wider text-slate-500">Classification
-                                Details</p>
-                            <div id="scoreBars" class="space-y-2">
-                                <!-- Bars will be injected here -->
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-3">
+                                <p class="text-sm font-semibold uppercase tracking-wider text-slate-500">Classification
+                                    Details</p>
+                                <div id="scoreBars" class="space-y-2">
+                                    <!-- Bars injected here -->
+                                </div>
+                            </div>
+                            <div class="h-48">
+                                <canvas id="radarChart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -103,6 +106,27 @@
                 <h1 class="text-4xl font-bold">Training Visualization</h1>
                 <p class="text-slate-400 mt-2">Insights from the model training phase.</p>
             </header>
+
+            <!-- Summary Bar -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="card !mb-0 p-4 border-l-4 border-indigo-500">
+                    <p class="text-xs text-slate-400 uppercase">Max Accuracy</p>
+                    <h4 class="text-2xl font-bold" id="statMaxAcc">--</h4>
+                </div>
+                <div class="card !mb-0 p-4 border-l-4 border-emerald-500">
+                    <p class="text-xs text-slate-400 uppercase">Validation Acc</p>
+                    <h4 class="text-2xl font-bold" id="statValAcc">--</h4>
+                </div>
+                <div class="card !mb-0 p-4 border-l-4 border-rose-500">
+                    <p class="text-xs text-slate-400 uppercase">Final Loss</p>
+                    <h4 class="text-2xl font-bold" id="statLoss">--</h4>
+                </div>
+                <div class="card !mb-0 p-4 border-l-4 border-amber-500">
+                    <p class="text-xs text-slate-400 uppercase">Total Epochs</p>
+                    <h4 class="text-2xl font-bold" id="statEpochs">--</h4>
+                </div>
+            </div>
+
             <div class="stats-grid">
                 <div class="card">
                     <h3 class="mb-4 font-bold">Accuracy Curve</h3>
@@ -128,8 +152,6 @@
                         <p class="text-slate-400">Achieved Accuracy: <span class="text-success font-bold">94.16%</span>
                         </p>
                     </div>
-                    <span class="px-3 py-1 bg-indigo-500/20 text-indigo-400 rounded-full text-xs font-bold">Production
-                        Ready</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">

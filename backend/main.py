@@ -49,29 +49,48 @@ def get_stats():
     if os.path.exists(HISTORY_PATH):
         with open(HISTORY_PATH, "rb") as f:
             history = pickle.load(f)
-        return history
+        
+        # Add summary stats
+        summary = {
+            "max_accuracy": round(max(history.get('accuracy', [0])) * 100, 2),
+            "max_val_accuracy": round(max(history.get('val_accuracy', [0])) * 100, 2),
+            "final_loss": round(history.get('loss', [0])[-1], 4),
+            "epochs": len(history.get('accuracy', []))
+        }
+        return {"history": history, "summary": summary}
     else:
         raise HTTPException(status_code=404, detail="Training history not found")
 
 @app.get("/model-info")
 def get_model_info():
     if model:
-        # Extract basic info from model summary as string
-        # Since model.summary() prints to stdout, we just return basic layered info
         layers = []
         for layer in model.layers:
+            # Get config to find params if needed, or just type and shape
+            try:
+                shape = str(layer.output_shape)
+            except:
+                shape = "Dynamic"
+            
             layers.append({
                 "name": layer.name,
                 "type": type(layer).__name__,
-                "output_shape": layer.output_shape
+                "output_shape": shape,
+                "trainable": layer.trainable
             })
         return {
             "name": "CNN Brain Tumour Detector",
             "accuracy": "94.16%",
-            "layers": layers
+            "layers": layers,
+            "total_params": model.count_params() if hasattr(model, 'count_params') else "Unknown"
         }
     else:
-        raise HTTPException(status_code=404, detail="Model not loaded")
+        return {
+            "name": "Model Not Loaded",
+            "accuracy": "0%",
+            "layers": [],
+            "error": "The model file could not be found or loaded on the server."
+        }
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
