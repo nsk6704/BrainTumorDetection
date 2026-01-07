@@ -14,7 +14,7 @@ import tqdm
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 import os
-for dirname, _, filenames in os.walk('/Users/siddharthkms/PycharmProjects/pythonProject4/archive'):
+for dirname, _, filenames in os.walk('/archive'):
     for filename in filenames:
         print(os.path.join(dirname, filename))
 
@@ -26,7 +26,7 @@ Y_train = []
 image_size = 150
 labels = ['glioma_tumor', 'meningioma_tumor', 'no_tumor', 'pituitary_tumor']
 for i in labels:
-    folderPath = os.path.join('/Users/siddharthkms/PycharmProjects/pythonProject4/archive/Testing', i)
+    folderPath = os.path.join('/archive/Testing', i)
     for j in os.listdir(folderPath):
         img = cv2.imread(os.path.join(folderPath, j))
         img = cv2.resize(img, (image_size, image_size))
@@ -34,7 +34,7 @@ for i in labels:
         Y_train.append(i)
 
 for i in labels:
-    folderPath = os.path.join('/Users/siddharthkms/PycharmProjects/pythonProject4/archive/Training', i)
+    folderPath = os.path.join('/archive/Training', i)
     for j in os.listdir(folderPath):
         img = cv2.imread(os.path.join(folderPath, j))
         img = cv2.resize(img, (image_size, image_size))

@@ -11,11 +11,6 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Three.js for 3D Visualisation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
 </head>
 
 <body>
@@ -44,14 +39,6 @@
                     </path>
                 </svg>
                 Model Stats
-            </li>
-            <li class="nav-item" data-target="atlas">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9">
-                    </path>
-                </svg>
-                3D Atlas
             </li>
             <li class="nav-item" data-target="info">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,7 +119,7 @@
             </header>
 
             <!-- Summary Bar -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div class="card !mb-0 p-4 border-l-4 border-indigo-500">
                     <p class="text-xs text-slate-400 uppercase">Max Accuracy</p>
                     <h4 class="text-2xl font-bold" id="statMaxAcc">--</h4>
@@ -144,10 +131,6 @@
                 <div class="card !mb-0 p-4 border-l-4 border-rose-500">
                     <p class="text-xs text-slate-400 uppercase">Final Loss</p>
                     <h4 class="text-2xl font-bold" id="statLoss">--</h4>
-                </div>
-                <div class="card !mb-0 p-4 border-l-4 border-amber-500">
-                    <p class="text-xs text-slate-400 uppercase">Total Epochs</p>
-                    <h4 class="text-2xl font-bold" id="statEpochs">--</h4>
                 </div>
             </div>
 
@@ -163,43 +146,6 @@
             </div>
         </section>
 
-        <!-- 3D Atlas Section -->
-        <section id="atlas" class="section">
-            <header class="mb-10">
-                <h1 class="text-4xl font-bold">3D Brain Atlas</h1>
-                <p class="text-slate-400 mt-2">Interactive 3D exploration of brain anatomy and functional areas.</p>
-            </header>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 card !p-0 overflow-hidden relative" style="height: 600px;">
-                    <div id="brain-3d-container" class="w-full h-full"></div>
-                    <div class="absolute bottom-4 left-4 flex gap-2">
-                        <span
-                            class="px-3 py-1 bg-indigo-500/20 border border-indigo-500/50 rounded-full text-xs font-bold text-indigo-400">Interactive</span>
-                        <span
-                            class="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-slate-400">Drag
-                            to Rotate</span>
-                    </div>
-                </div>
-
-                <div class="space-y-6">
-                    <div class="card">
-                        <h2 id="area-name">Select an Area</h2>
-                        <div id="area-details" class="text-slate-400 text-sm leading-relaxed">
-                            Click on different parts of the 3D brain model to learn about their functions and potential
-                            pathologies.
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h3 class="text-sm font-bold uppercase tracking-widest text-slate-500 mb-4">Quick Navigation
-                        </h3>
-                        <div class="grid grid-cols-2 gap-2" id="atlas-nav">
-                            <!-- Buttons injected here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- Info Section -->
@@ -227,10 +173,33 @@
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6" id="modelStats">
                         <!-- Stat cards injected here -->
                     </div>
+                </div>
 
-                    <div class="mt-10 pt-8 border-t border-white/5 flex justify-between items-center text-sm">
-                        <span class="text-slate-500 uppercase tracking-widest font-bold">Total Parameters</span>
-                        <span class="text-indigo-400 font-mono text-xl font-black" id="totalParams">--</span>
+                <!-- Analysis Choice Card -->
+                <div class="card mt-8 bg-indigo-500/5 border-indigo-500/20">
+                    <h3 class="text-xl font-bold mb-4 text-indigo-400 flex items-center gap-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Why Custom CNN vs. EfficientNet?
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-400 leading-relaxed">
+                        <div class="space-y-3">
+                            <p><strong class="text-white">Precision for Medical MRI:</strong> EfficientNet is optimized
+                                for natural images (dogs, cars), while custom CNNs better preserve sharp edges in MRI
+                                grayscale gradients.</p>
+                            <p><strong class="text-white">Overfitting Control:</strong> EfficientNet's massive parameter
+                                count often leads to memorization on specific medical datasets. Our leaner CNN
+                                generalizes better for real-world scans.</p>
+                        </div>
+                        <div class="space-y-3">
+                            <p><strong class="text-white">Low Latency Analysis:</strong> By training specifically for
+                                150x150 inputs, we achieve near-instant inference without the overhead of compound
+                                scaling.</p>
+                            <p><strong class="text-white">Focused Features:</strong> Custom layers allow the model to
+                                focus on tumor-specific textures rather than generic object shapes.</p>
+                        </div>
                     </div>
                 </div>
             </div>

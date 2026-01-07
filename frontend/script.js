@@ -22,167 +22,8 @@ navItems.forEach(item => {
         if (target === 'history') loadStats();
         if (target === 'info') loadModelInfo();
         if (target === 'education') loadEducationalContent();
-        if (target === 'atlas') initBrainAtlas();
     });
 });
-
-// ========== 3D BRAIN ATLAS ==========
-let atlasInitialized = false;
-const BRAIN_AREAS = {
-    'Frontal Lobe': {
-        color: 0x4f46e5,
-        description: 'The executive center of the brain. Responsible for decision making, motor control, personality, and expressive language. Tumors here often cause personality changes or weakness on one side of the body.',
-        position: { x: 0, y: 0.5, z: 1.5 }
-    },
-    'Parietal Lobe': {
-        color: 0x10b981,
-        description: 'Processes sensory information like touch, temperature, and spatial navigation. Pathologies here can lead to difficulties with reading, writing, and spatial awareness.',
-        position: { x: 0, y: 1.5, z: 0 }
-    },
-    'Temporal Lobe': {
-        color: 0xf59e0b,
-        description: 'Vital for hearing, memory, and language comprehension. This is a common site for Gliomas and can cause memory loss or difficulty understanding speech.',
-        position: { x: 1.5, y: -0.5, z: 0.5 }
-    },
-    'Occipital Lobe': {
-        color: 0xec4899,
-        description: 'The primary visual processing center. Damage or tumors in this area can lead to visual deficits or hallucinations.',
-        position: { x: 0, y: 0.2, z: -1.8 }
-    },
-    'Cerebellum': {
-        color: 0x8b5cf6,
-        description: 'Located at the back of the brain, it coordinates voluntary movements such as posture, balance, and coordination. Common site for tumors in children.',
-        position: { x: 0, y: -1.2, z: -1.2 }
-    },
-    'Pituitary Gland': {
-        color: 0xef4444,
-        description: 'The "master gland" that controls hormone production. Pituitary adenomas can affect vision and metabolic functions.',
-        position: { x: 0, y: -1, z: 0.5 }
-    }
-};
-
-function initBrainAtlas() {
-    if (atlasInitialized) return;
-
-    const container = document.getElementById('brain-3d-container');
-    const width = container.clientWidth;
-    const height = container.clientHeight;
-
-    // Scene setup
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0f172a);
-
-    // Camera
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.z = 8;
-
-    // Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    container.appendChild(renderer.domElement);
-
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
-
-    const pointLight = new THREE.PointLight(0x4f46e5, 1);
-    pointLight.position.set(10, 10, 10);
-    scene.add(pointLight);
-
-    // Controls
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.5;
-
-    // Build Procedural Brain (Symbolic for EL)
-    const brainGroup = new THREE.Group();
-
-    // Create sections
-    Object.keys(BRAIN_AREAS).forEach(name => {
-        const area = BRAIN_AREAS[name];
-        const geometry = new THREE.IcosahedronGeometry(Math.random() * 0.5 + 1, 2);
-        const material = new THREE.MeshPhongMaterial({
-            color: area.color,
-            transparent: true,
-            opacity: 0.8,
-            flatShading: true,
-            shininess: 100
-        });
-
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(area.position.x, area.position.y, area.position.z);
-        mesh.userData = { name, description: area.description };
-        brainGroup.add(mesh);
-
-        // Add to Quick Nav
-        const btn = document.createElement('button');
-        btn.className = 'px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold uppercase transition hover:bg-white/10 text-left';
-        btn.innerHTML = `<span class="block w-2 h-2 rounded-full mb-1" style="background: #${area.color.toString(16).padStart(6, '0')}"></span>${name}`;
-        btn.onclick = () => focusArea(name, mesh);
-        document.getElementById('atlas-nav').appendChild(btn);
-    });
-
-    scene.add(brainGroup);
-
-    // Raycaster for interaction
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-
-    container.addEventListener('click', (event) => {
-        const rect = container.getBoundingClientRect();
-        mouse.x = ((event.clientX - rect.left) / width) * 2 - 1;
-        mouse.y = -((event.clientY - rect.top) / height) * 2 + 1;
-
-        raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(brainGroup.children);
-
-        if (intersects.length > 0) {
-            const object = intersects[0].object;
-            focusArea(object.userData.name, object);
-        }
-    });
-
-    function focusArea(name, mesh) {
-        document.getElementById('area-name').innerText = name;
-        document.getElementById('area-name').style.color = `#${BRAIN_AREAS[name].color.toString(16).padStart(6, '0')}`;
-        document.getElementById('area-details').innerText = BRAIN_AREAS[name].description;
-
-        // Pulse animation
-        const originalScale = mesh.scale.x;
-        new TWEEN.Tween(mesh.scale)
-            .to({ x: 1.2, y: 1.2, z: 1.2 }, 200)
-            .easing(TWEEN.Easing.Quadratic.Out)
-            .onComplete(() => {
-                new TWEEN.Tween(mesh.scale)
-                    .to({ x: 1, y: 1, z: 1 }, 500)
-                    .easing(TWEEN.Easing.Bounce.Out)
-                    .start();
-            })
-            .start();
-    }
-
-    // Animation Loop
-    function animate() {
-        requestAnimationFrame(animate);
-        controls.update();
-        TWEEN.update();
-        renderer.render(scene, camera);
-    }
-
-    animate();
-    atlasInitialized = true;
-
-    // Handle Window Resize
-    window.addEventListener('resize', () => {
-        const newWidth = container.clientWidth;
-        const newHeight = container.clientHeight;
-        camera.aspect = newWidth / newHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(newWidth, newHeight);
-    });
-}
 
 // ========== FILE UPLOAD & PREDICTION ==========
 const dropZone = document.getElementById('dropZone');
@@ -344,7 +185,6 @@ async function loadStats() {
         document.getElementById('statMaxAcc').innerText = summary.max_accuracy + '%';
         document.getElementById('statValAcc').innerText = summary.max_val_accuracy + '%';
         document.getElementById('statLoss').innerText = summary.final_loss;
-        document.getElementById('statEpochs').innerText = summary.epochs;
 
         const labels = Array.from({ length: history.accuracy.length }, (_, i) => i + 1);
 
@@ -387,7 +227,6 @@ async function loadModelInfo() {
         document.getElementById('modelName').innerText = info.name;
         document.getElementById('modelType').innerText = info.type;
         document.getElementById('modelDesc').innerText = info.description;
-        document.getElementById('totalParams').innerText = info.params;
 
         const statsContainer = document.getElementById('modelStats');
         statsContainer.innerHTML = '';
