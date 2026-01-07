@@ -1,4 +1,5 @@
 import os
+import sys
 import pickle
 import numpy as np
 import cv2
@@ -9,6 +10,9 @@ from tensorflow.keras.models import load_model
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 from dotenv import load_dotenv
+
+# Ensure the backend directory is in the python path for local imports
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Import chatbot and educational modules
 from chatbot import get_chatbot_response, get_suggested_questions, initialize_groq_client
