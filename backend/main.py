@@ -2,11 +2,20 @@ import os
 import pickle
 import numpy as np
 import cv2
+import uuid
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from tensorflow.keras.models import load_model
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict, Optional
+from dotenv import load_dotenv
+
+# Import chatbot and educational modules
+from chatbot import get_chatbot_response, get_suggested_questions, initialize_groq_client
+from educational_data import get_tumor_info, get_all_tumor_info, get_faqs
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI(title="Brain Tumour Detection API")
 
@@ -28,6 +37,21 @@ LABELS = ['Glioma Tumour', 'Meningioma Tumour', 'No Tumour', 'Pituitary Tumour']
 # Global model variable
 model = None
 
+# Session storage for conversation history (in-memory for MVP)
+# In production, use Redis or a database
+conversation_sessions = {}
+
+# Pydantic models for request/response
+class ChatRequest(BaseModel):
+    message: str
+    context: Optional[Dict] = None
+    session_id: Optional[str] = None
+
+class ChatResponse(BaseModel):
+    response: str
+    session_id: str
+    suggested_questions: List[str]
+
 @app.on_event("startup")
 def load_resources():
     global model
@@ -39,6 +63,14 @@ def load_resources():
             print(f"Error loading model: {e}")
     else:
         print(f"Model file not found at {MODEL_PATH}")
+    
+    # Initialize Groq chatbot
+    try:
+        initialize_groq_client()
+        print("Groq chatbot initialized successfully")
+    except Exception as e:
+        print(f"Warning: Groq chatbot initialization failed: {e}")
+        print("Chatbot features will be unavailable. Set GROQ_API_KEY in .env file.")
 
 @app.get("/")
 def read_root():
@@ -128,6 +160,71 @@ async def predict(file: UploadFile = File(...)):
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid image: {str(e)}")
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest):
+    """
+    Chat endpoint for AI-powered medical education assistant.
+    Supports context-aware responses based on scan results.
+    """
+    try:
+        # Generate or retrieve session ID
+        session_id = request.session_id or str(uuid.uuid4())
+        
+        # Get conversation history for this session
+        if session_id not in conversation_sessions:
+            conversation_sessions[session_id] = []
+        
+        conversation_history = conversation_sessions[session_id]
+        
+        # Get chatbot response
+        response = await get_chatbot_response(
+            user_message=request.message,
+            context=request.context,
+            conversation_history=conversation_history
+        )
+        
+        # Update conversation history
+        conversation_history.append({"role": "user", "content": request.message})
+        conversation_history.append({"role": "assistant", "content": response})
+        
+        # Keep only last 20 messages to prevent memory bloat
+        if len(conversation_history) > 20:
+            conversation_history = conversation_history[-20:]
+        
+        conversation_sessions[session_id] = conversation_history
+        
+        # Get suggested questions
+        suggestions = get_suggested_questions(request.context)
+        
+        return ChatResponse(
+            response=response,
+            session_id=session_id,
+            suggested_questions=suggestions
+        )
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")
+
+@app.get("/educational-content")
+def get_educational_content():
+    """
+    Get educational content for all tumor types and FAQs.
+    """
+    return {
+        "tumor_types": get_all_tumor_info(),
+        "faqs": get_faqs()
+    }
+
+@app.get("/educational-content/{tumor_type}")
+def get_educational_content_by_type(tumor_type: str):
+    """
+    Get detailed educational content for a specific tumor type.
+    """
+    info = get_tumor_info(tumor_type)
+    if info is None:
+        raise HTTPException(status_code=404, detail=f"Tumor type '{tumor_type}' not found")
+    return info
 
 if __name__ == "__main__":
     import uvicorn

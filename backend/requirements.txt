@@ -8,3 +8,5 @@ pandas
 scikit-learn
 matplotlib
 seaborn
+groq>=0.4.0
+python-dotenv
